@@ -1,0 +1,17 @@
+.board {
+    border: 1px groove black;
+    background-color: rgb(233, 165, 233);
+    color:aqua;
+    font-size: 30px;
+    text-align: center;
+    position: relative;
+}
+
+.frame {
+    overflow: hidden hidden;
+    width: 80vw;
+    height: 80vh;
+    text-align: center;
+    background-color: aqua;
+    position:fixed;
+}
