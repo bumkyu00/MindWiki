@@ -19,33 +19,53 @@ export default class Mindmap extends React.Component {
             mouse_x: 0,
             mouse_y: 0,
         }
-    }
+        window.addEventListener('mousemove', (e)=>this.boardOnMouseMoveHandler(e));
+        window.addEventListener('mouseup', (e)=>this.onMouseUpCaptureHandler(e));
 
+        this.zoomSpeed = 0.003;
+    }
     adjustPositionRatio = () => {
         var width = this.frameRef.current.clientWidth * this.state.zoom_ratio;
         var height = this.frameRef.current.clientHeight * this.state.zoom_ratio;
-        console.log(this.state.mouse_x, this.state.x);
         var xRatio = (this.state.mouse_x - this.state.x) / width;
         var yRatio = (this.state.mouse_y - this.state.y) / height;
-        // console.log(xRatio, yRatio);
         return [xRatio, yRatio];
     }
 
     onWheelHandler = (e) => {
+        var width = this.frameRef.current.clientWidth;
+        var height = this.frameRef.current.clientHeight;
         var ratio = this.adjustPositionRatio();
-        console.log(ratio);
+        var newZoomRatio = this.state.zoom_ratio - e.deltaY * this.zoomSpeed;
+        newZoomRatio = newZoomRatio >= 1 ? newZoomRatio : 1;
+        var newX = this.state.x + e.deltaY * this.zoomSpeed * ratio[0] * this.frameRef.current.clientWidth;
+        var newY = this.state.y + e.deltaY * this.zoomSpeed * ratio[1] * this.frameRef.current.clientHeight;
+        if(newX >= 0) {
+            newX = 0;
+        }
+        else if(newX <= width * (1 - newZoomRatio)) {
+            newX = width * (1 - newZoomRatio);
+        }
+        if(newY >= 0) {
+            newY = 0;
+        }
+        else if(newY <= height * (1 - newZoomRatio)) {
+            newY = height * (1 - newZoomRatio);
+        }
         this.setState({
             mouse_x: e.clientX, 
             mouse_y: e.clientY,
-            zoom_ratio: this.state.zoom_ratio + e.deltaY * 0.001,
-            x: this.state.x - e.deltaY * 0.001 * 0.5 * this.frameRef.current.clientWidth,
-            y: this.state.y - e.deltaY * 0.001 * 0.5 * this.frameRef.current.clientHeight
+            zoom_ratio: newZoomRatio,
+            x: newX,
+            y: newY
         });
     }
 
     frameOnMouseMoveHandler = (e) => {
-        this.setState({mouse_x: e.clientX, mouse_y: e.clientY});
-        // console.log(this.state.mouse_x, this.state.mouse_y);
+        this.setState({
+            mouse_x: e.clientX, 
+            mouse_y: e.clientY,
+        });
     }
 
     onMouseDownCaptureHandler = (e) => {
@@ -60,19 +80,28 @@ export default class Mindmap extends React.Component {
 
     boardOnMouseMoveHandler = (e) => {
         if(this.state.dragged){
-            var new_x = this.state.orig_x + e.clientX - this.state.click_x;
-            var new_y = this.state.orig_y + e.clientY - this.state.click_y;
-            // if(new_x >= 0) {
-            //     new_x = 0;
-            // }
-            // if(new_y >= 0) {
-            //     new_y = 0;
-            // }
-            this.setState({x: new_x, y: new_y});
+            var newX = this.state.orig_x + (e.clientX - this.state.click_x);
+            var newY = this.state.orig_y + (e.clientY - this.state.click_y);
+            var width = this.frameRef.current.clientWidth;
+            var height = this.frameRef.current.clientHeight;
+            var zoom_ratio = this.state.zoom_ratio;
+            if(newX >= 0) {
+                newX = 0;
+            }
+            else if(newX <= width * (1 - zoom_ratio)) {
+                newX = width * (1 - zoom_ratio);
+            }
+            if(newY >= 0) {
+                newY = 0;
+            }
+            else if(newY <= height * (1 - zoom_ratio)) {
+                newY = height * (1 - zoom_ratio);
+            }
+            this.setState({x: newX, y: newY});
         }
     }
 
-    onMouseUpCapture = () => {
+    onMouseUpCaptureHandler = (e) => {
         this.setState({
             dragged: false,
             orig_x: this.state.x,
@@ -81,11 +110,11 @@ export default class Mindmap extends React.Component {
     }
 
     render() {
-        // console.log(this.state.x, this.state.y);
         return (
             <div
                  className='frame'
                  ref={this.frameRef}
+                 style={{userSelect: 'none'}}
                  onWheel={(e)=>this.onWheelHandler(e)}
                  onMouseMove={(e)=>this.frameOnMouseMoveHandler(e)}
             >
@@ -96,16 +125,12 @@ export default class Mindmap extends React.Component {
                         top: this.state.y,
                         width: 100 * this.state.zoom_ratio + '%',
                         height: 100 * this.state.zoom_ratio + '%',
-                        // transform: `scale(${this.state.zoom_ratio})`,
-                        // transformOrigin: `${this.state.mouse_x - this.state.x} ${this.state.mouse_y - this.state.y}`
                     }}
                     onMouseDownCapture={(e)=>this.onMouseDownCaptureHandler(e)}
-                    onMouseUpCapture={()=>this.onMouseUpCapture()}
-                    onMouseMove={(e)=>this.boardOnMouseMoveHandler(e)}
+                    onMouseUpCapture={()=>this.onMouseUpCaptureHandler()}
                 >
                     <img draggable={false} src={logo}/>
                 </div>
-                {/* <Node text='hihi'></Node> */}
             </div>
         );
     }
