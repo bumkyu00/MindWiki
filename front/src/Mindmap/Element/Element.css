@@ -1,4 +1,4 @@
-.node {
+.element {
     width: 5%;
     height: 5%;
 
@@ -8,6 +8,6 @@
     border-radius: 25px;
     background-color: white;
 
-    font-size: 60px;
     text-align: center;
+    white-space: normal;
 }

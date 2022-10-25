@@ -4,13 +4,13 @@
     color:aqua;
     font-size: 30px;
     text-align: center;
-    position: relative;
+    position: absolute;
 }
 
 .frame {
     overflow: hidden hidden;
-    width: 80vw;
-    height: 80vh;
+    width: 100vw;
+    height: 100vh;
     text-align: center;
     background-color: aqua;
     position:fixed;

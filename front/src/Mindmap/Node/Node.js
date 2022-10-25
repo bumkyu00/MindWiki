@@ -6,13 +6,38 @@ export default class Node extends React.Component {
         super(props);
         this.state = {
             can_move: false, 
-            x: 600, 
-            y: 400,
-            orig_x: 600,
-            orig_y: 400,
-            click_x: 600,
-            click_y: 400
+            x: 60, 
+            y: 40,
+            orig_x: 60,
+            orig_y: 40,
+            click_x: 60,
+            click_y: 40
         };
+    }
+
+    zoom = (e) => {
+        var zoomDiff = -e.deltaY * this.zoomSpeed;
+        var newZoomRatio = this.state.zoom_ratio + zoomDiff;
+        newZoomRatio = newZoomRatio >= 1 ? newZoomRatio : 1;
+        var newX = this.state.x + ((this.state.x - e.clientX) / this.state.zoom_ratio) * zoomDiff;
+        var newY = this.state.y + ((this.state.y - e.clientY) / this.state.zoom_ratio) * zoomDiff;
+        if(newX >= 0) {
+            newX = 0;
+        }
+        if(newX <= this.frameWidth * (1 - newZoomRatio)) {
+            newX = this.frameWidth * (1 - newZoomRatio);
+        }
+        if(newY >= 0) {
+            newY = 0;
+        }
+        if(newY <= this.frameHeight * (1 - newZoomRatio)) {
+            newY = this.frameHeight * (1 - newZoomRatio);
+        }
+        this.setState({
+            zoom_ratio: newZoomRatio,
+            x: newX,
+            y: newY
+        });
     }
 
     onMouseDownCaptureHandler = (e) => {
@@ -51,7 +76,7 @@ export default class Node extends React.Component {
             onMouseMove={(e)=>this.onMouseMoveHandler(e)}
             onMouseOut={(e)=>this.onMouseMoveHandler(e)}
         >
-            {this.state.can_move.toString()}
+            {this.props.text}
         </div>
         );
         return node;
