@@ -72,7 +72,9 @@ export default class Element extends React.Component {
                 top: this.props.y + '%',
                 width: this.props.width + '%',
                 height: this.props.height + '%',
-                fontSize: this.props.zoomRatio * 50
+                fontSize: this.props.zoomRatio * 15,
+                border: this.props.zoomRatio * 2,
+                borderRadius: this.props.zoomRatio * 10
             }}
             onMouseDownCapture={(e)=>this.onMouseDownCaptureHandler(e)}
         >

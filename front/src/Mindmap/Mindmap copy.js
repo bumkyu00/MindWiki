@@ -20,12 +20,10 @@ export default class Mindmap extends React.Component {
             clickX: 0,
             clickY: 0,
             elements: [
-                {id:0, x:50, y:50, text:'1111'},
+                {id:0, x:50, y:50, text:'1111', parentId: null, children: [
+                    {id: 1, x: 55, y:53, text: '2222', parentId: 0, children: []}
+                ]},
             ],
-            tree:[
-                {id: 0, parentId: null, children: []}
-            ],
-            lastId: 0
         }
         window.addEventListener('mousemove', (e)=>this.onMouseMoveHandler(e));
         window.addEventListener('mouseup', (e)=>this.onMouseUpCaptureHandler(e));
@@ -36,32 +34,33 @@ export default class Mindmap extends React.Component {
         this.changeParentDrag = this.changeParentDrag.bind(this);
     }
 
-    _treeInsert = (newTree, parentId, insertId) => {
-        for(let node of newTree) {
-            if(node.id === parentId) {
-                node.children.push({id: insertId, children: []})
-                return newTree
-            }
-            this._treeInsert(node.children, parentId, insertId)
+    _renderElements = (arr, elements) => {
+        for(let element of elements) {
+            arr.push(
+                <Node
+                    id={element.id}
+                    x={element.x} 
+                    y={element.y} 
+                    width={5}
+                    height={5}
+                    text={element.text}
+                    zoomRatio={this.state.zoomRatio}
+                    frameWidth={this.state.frameWidth}
+                    frameHeight={this.state.frameHeight}
+                    boardX={this.state.x}
+                    boardY={this.state.y}
+                    changeChildPosition={this.changeChildPosition}
+                    changeParentDrag={this.changeParentDrag}
+                />
+            )
+            this._renderElements(arr, element.children)
         }
-        return newTree
     }
 
-    treeInsert = (parentId, insertId) => {
-        var newTree = this.state.tree
-        return this._treeInsert(newTree, parentId, insertId)
-    }
-
-    addChildNode = (parentId) => {
-        var parentElement = this.state.elements.find((element) => element.id === parentId)
-        var newElement = {id: this.state.lastId + 1, x: parentElement.x + 5, y: parentElement.y + 5, text: this.state.lastId + 1 + ''}
-        var newElements = this.state.elements
-        newElements.push(newElement)
-        this.setState({
-            elements: newElements,
-            tree: this.treeInsert(parentElement.id, newElement.id),
-            lastId: this.state.lastId + 1
-        })
+    renderedElements = () => {
+        var renderedElements = []
+        this._renderElements(renderedElements, this.state.elements)
+        return renderedElements
     }
 
     changeChildPosition = (id, x, y) => {
@@ -80,6 +79,11 @@ export default class Mindmap extends React.Component {
         this.setState({
             elements: newElements
         })
+
+        
+        for(let element of this.state.elements) {
+
+        }
     }
 
     changeParentDrag = (drag) => {
@@ -120,7 +124,7 @@ export default class Mindmap extends React.Component {
             origY: this.state.y,
             clickX: e.clientX,
             clickY: e.clientY,
-        })
+        });
     }
 
     onMouseMoveHandler = (e) => {
@@ -175,25 +179,7 @@ export default class Mindmap extends React.Component {
                             height: 100 * this.state.zoomRatio + '%',
                         }}
                     >
-                        {this.state.elements.map((element) => {
-                        return (
-                            <Node 
-                                id={element.id}
-                                x={element.x} 
-                                y={element.y} 
-                                width={5}
-                                height={5}
-                                text={element.text}
-                                zoomRatio={this.state.zoomRatio}
-                                frameWidth={this.state.frameWidth}
-                                frameHeight={this.state.frameHeight}
-                                boardX={this.state.x}
-                                boardY={this.state.y}
-                                changeChildPosition={this.changeChildPosition}
-                                changeParentDrag={this.changeParentDrag}
-                            />
-                        );
-                    })}
+                        {this.renderedElements()}
                         <img draggable={false} src={logo}/>
                     </div>
                 </div>
