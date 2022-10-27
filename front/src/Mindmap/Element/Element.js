@@ -51,7 +51,7 @@ export default class Element extends React.Component {
             if(newY > 100 - this.props.height) {
                 newY = 100 - this.props.height;
             }
-            this.props.changeChildPosition(this.props.id, newX, newY)
+            // this.props.changeChildPosition(this.props.id, newX, newY)
         }
     }
 
@@ -63,6 +63,10 @@ export default class Element extends React.Component {
         })
     }
 
+    onClickHandler = () => {
+        this.props.selectNode(this.props.id)
+    }
+
     render() {
         return (
         <div 
@@ -72,11 +76,13 @@ export default class Element extends React.Component {
                 top: this.props.y + '%',
                 width: this.props.width + '%',
                 height: this.props.height + '%',
-                fontSize: this.props.zoomRatio * 15,
-                border: this.props.zoomRatio * 2,
-                borderRadius: this.props.zoomRatio * 10
+                fontSize: this.props.zoomRatio * this.props.frameWidth * 0.01,
+                border: this.props.zoomRatio * 5 + 'px solid ' + (this.props.selected ? 'blue' : 'black'),
+                borderRadius: this.props.zoomRatio * 15,
+                boxSizing: 'border-box'
             }}
             onMouseDownCapture={(e)=>this.onMouseDownCaptureHandler(e)}
+            onClick={()=>this.onClickHandler()}
         >
             {this.props.text}
         </div>
