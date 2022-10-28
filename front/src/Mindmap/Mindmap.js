@@ -20,33 +20,92 @@ export default class Mindmap extends React.Component {
             clickX: 0,
             clickY: 0,
             elements: [
-                {id:0, x:50, y:50, text:'1111'},
+                {id:0, x:50, y:50, text:'0'},
             ],
             tree:[
-                {id: 0, parentId: null, children: []}
+                {id: 0, parentId: 0, children: [], offsetX: 0, offsetY: 0}
             ],
             lastId: 0,
             selectedId: 0
         }
+        this.origPos = []
+
         window.addEventListener('mousemove', (e)=>this.onMouseMoveHandler(e))
         window.addEventListener('mouseup', (e)=>this.onMouseUpCaptureHandler(e))
 
         this.zoomSpeed = 0.003;
 
-        this.changeChildPosition = this.changeChildPosition.bind(this)
-        this.changeParentDrag = this.changeParentDrag.bind(this)
+        this.changeNodePosition = this.changeNodePosition.bind(this)
+        this.saveOriginalPositions = this.saveOriginalPositions.bind(this)
+        this.freeOriginalPositions = this.freeOriginalPositions.bind(this)
+        this.changeGroupPosition = this.changeGroupPosition.bind(this)
+        this.changeBoardDrag = this.changeBoardDrag.bind(this)
         this.selectNode = this.selectNode.bind(this)
 
     }
 
-    findElementById = (id) => {
+    findElement = (id) => {
         return this.state.elements.find((element) => element.id === id)
+    }
+
+    _findNode = (arr, id) => {
+        var ret = null
+        for(let node of arr) {
+            if(node.id === id) {
+                ret = node
+            }
+            else if(ret === null){
+                ret = this._findNode(node.children, id)
+            }
+        }
+        return ret
+    }
+
+    findNode = (id) => {
+        var ret = this._findNode(this.state.tree, id)
+        return ret
+    }
+
+    calculateOffsets = (arr, parentOffsetX, parentOffsetY) => {
+        var i = 0
+        for(let node of arr) {
+            node.offsetX = parentOffsetX + 8
+            node.offsetY = parentOffsetY + 8 * i++
+            this.calculateOffsets(node.children, node.offsetX, node.offsetY)
+        }
+        return arr
+    }
+
+    _calculatePositions = (arr, newElements, rootX, rootY) => {
+        for(let node of arr) {
+            var idx = newElements.findIndex(element => element.id === node.id)
+            newElements[idx].x = rootX + node.offsetX
+            newElements[idx].y = rootY + node.offsetY
+            this._calculatePositions(node.children, newElements, rootX, rootY)
+        }
+    }
+
+    calculatePositions = (newTree) => {
+        var newElements = this.state.elements
+        for(let node of newTree) {
+            var element = this.findElement(node.id)
+            this._calculatePositions(node.children, newElements, element.x, element.y)
+        }
+        return newElements
+    }
+
+    updatePositions = () => {
+        var newTree = this.calculateOffsets(this.state.tree, -8, 0)
+        this.setState({
+            elements: this.calculatePositions(newTree),
+            tree: newTree,
+        })
     }
 
     _generateLines = (lines, node) => {
         for(let child of node.children) {
-            var p1 = this.findElementById(node.id)
-            var p2 = this.findElementById(child.id)
+            var p1 = this.findElement(node.id)
+            var p2 = this.findElement(child.id)
             lines.push([
                 p1.x + 4.8, 
                 p1.y + 2.5, 
@@ -65,15 +124,15 @@ export default class Mindmap extends React.Component {
         return lines
     }
 
-    _treeInsert = (newTree, parentId, insertId) => {
-        for(let node of newTree) {
+    _treeInsert = (arr, parentId, insertId) => {
+        for(let node of arr) {
             if(node.id === parentId) {
-                node.children.push({id: insertId, children: []})
-                return newTree
+                node.children.push({id: insertId, parentId:node.id , children: [], offsetX: 0, offsetY: 0})
+                return arr
             }
             this._treeInsert(node.children, parentId, insertId)
         }
-        return newTree
+        return arr
     }
 
     treeInsert = (parentId, insertId) => {
@@ -83,7 +142,7 @@ export default class Mindmap extends React.Component {
 
     addChildNode = (parentId) => {
         var parentElement = this.state.elements.find((element) => element.id === parentId)
-        var newElement = {id: this.state.lastId + 1, x: parentElement.x + 8, y: parentElement.y, text: (this.state.lastId + 1) + ''}
+        var newElement = {id: this.state.lastId + 1, x: parentElement.x, y: parentElement.y, text: (this.state.lastId + 1) + ''}
         var newElements = this.state.elements
         newElements.push(newElement)
         this.setState({
@@ -92,10 +151,10 @@ export default class Mindmap extends React.Component {
             lastId: this.state.lastId + 1,
             selectedId: this.state.lastId + 1
         })
-        console.log(this.state.lastId)
+        this.updatePositions()
     }
 
-    changeChildPosition = (id, x, y) => {
+    changeNodePosition = (id, x, y) => {
         var newElements = this.state.elements.map((element) => {
             if(element.id === id) {
                 return {
@@ -113,7 +172,42 @@ export default class Mindmap extends React.Component {
         })
     }
 
-    changeParentDrag = (drag) => {
+    saveOriginalPositions = (id) => {
+        var node = this.findNode(id)
+        var queue = []
+        queue.push(node)
+        while(queue.length > 0) {
+            var tmp = queue.pop()
+            var element = this.findElement(tmp.id)
+            this.origPos.push([tmp.id, element.x, element.y])
+            queue.push(...tmp.children)
+        }
+    }
+
+    freeOriginalPositions = () => {
+        this.origPos = []
+    }
+
+    changeGroupPosition = (xDiff, yDiff) => {
+        var newElements = this.state.elements.map((element) => {
+            for(let pos of this.origPos) {
+                if(pos[0] === element.id) {
+                    return {
+                        ...element,
+                        x: pos[1] + xDiff,
+                        y: pos[2] + yDiff
+                    }
+                }
+            }
+            return element
+        })
+        this.setState({
+            elements: newElements
+        })
+
+    }
+
+    changeBoardDrag = (drag) => {
         this.setState({
             dragged: drag
         })
@@ -203,7 +297,7 @@ export default class Mindmap extends React.Component {
 
     onKeyDownCaptureHandler = (e) => {
         if(e.key === 'Enter' && this.state.selectedId !== null){
-            this.addChildNode(this.state.selectedId)
+            this.addChildNode(this.findNode(this.state.selectedId).parentId)
         }
         else if(e.key === 'Tab' && this.state.selectedId !== null){
             e.preventDefault()
@@ -249,8 +343,11 @@ export default class Mindmap extends React.Component {
                                         boardX={this.state.x}
                                         boardY={this.state.y}
                                         selected={this.state.selectedId === element.id}
-                                        changeChildPosition={this.changeChildPosition}
-                                        changeParentDrag={this.changeParentDrag}
+                                        changeNodePosition={this.changeNodePosition}
+                                        saveOriginalPositions={this.saveOriginalPositions}
+                                        freeOriginalPositions={this.freeOriginalPositions}
+                                        changeGroupPosition={this.changeGroupPosition}
+                                        changeBoardDrag={this.changeBoardDrag}
                                         selectNode={this.selectNode}
                                     />
                                 );

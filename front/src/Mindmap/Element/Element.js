@@ -24,7 +24,7 @@ export default class Element extends React.Component {
     }
 
     onMouseDownCaptureHandler = (e) => {
-        this.props.changeParentDrag(false)
+        this.props.changeBoardDrag(false)
         this.setState({
             dragged: true,
             origX: this.props.x,
@@ -32,26 +32,30 @@ export default class Element extends React.Component {
             clickX: this._absoluteToPercentX(e.clientX),
             clickY: this._absoluteToPercentY(e.clientY),
         });
+        this.props.saveOriginalPositions(this.props.id)
     }
 
     onMouseMoveHandler = (e) => {
         if(this.state.dragged){
-            this.props.changeParentDrag(false)
-            var newX = this.state.origX + (this._absoluteToPercentX(e.clientX) - this.state.clickX);
-            var newY = this.state.origY + (this._absoluteToPercentY(e.clientY) - this.state.clickY);
-            if(newX < 0) {
-                newX = 0;
-            }
-            if(newX > 100 - this.props.width) {
-                newX = 100 - this.props.width;
-            }
-            if(newY < 0) {
-                newY = 0;
-            }
-            if(newY > 100 - this.props.height) {
-                newY = 100 - this.props.height;
-            }
-            // this.props.changeChildPosition(this.props.id, newX, newY)
+            this.props.changeBoardDrag(false)
+            // var newX = this.state.origX + (this._absoluteToPercentX(e.clientX) - this.state.clickX);
+            // var newY = this.state.origY + (this._absoluteToPercentY(e.clientY) - this.state.clickY);
+            // if(newX < 0) {
+            //     newX = 0;
+            // }
+            // if(newX > 100 - this.props.width) {
+            //     newX = 100 - this.props.width;
+            // }
+            // if(newY < 0) {
+            //     newY = 0;
+            // }
+            // if(newY > 100 - this.props.height) {
+            //     newY = 100 - this.props.height;
+            // }
+            this.props.changeGroupPosition(
+                (this._absoluteToPercentX(e.clientX) - this.state.clickX), 
+                (this._absoluteToPercentY(e.clientY) - this.state.clickY)
+            )
         }
     }
 
@@ -61,6 +65,7 @@ export default class Element extends React.Component {
             origX: this.props.x,
             origY: this.props.y,
         })
+        this.props.freeOriginalPositions()
     }
 
     onClickHandler = () => {
