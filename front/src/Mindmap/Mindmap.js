@@ -23,8 +23,10 @@ export default class Mindmap extends React.Component {
                 {id:0, x:50, y:50, text:'0'},
             ],
             tree:[
-                {id: 0, parentId: 0, children: [], offsetX: 0, offsetY: 0}
+                {id: 0, parentId: 0, children: [], leafSize: 1, offsetX: 0, offsetY: 0}
             ],
+            nodeWeight: 2,
+            nodeHeight: 2,
             lastId: 0,
             selectedId: 0
         }
@@ -66,11 +68,26 @@ export default class Mindmap extends React.Component {
         return ret
     }
 
+    calculateLeafSize = (arr) => {
+        var sum = 0
+        for(let node of arr) {
+            node.leafSize = this.calculateLeafSize(node.children)
+            sum += node.leafSize
+        }
+        return sum == 0 ? 1 : sum
+    }
+
     calculateOffsets = (arr, parentOffsetX, parentOffsetY) => {
-        var i = 0
+        var middle = 0
+        for(let node of arr) {
+            middle += node.leafSize
+        }
+        middle = 0.5 * (middle - 1)
+        var sum = 0
         for(let node of arr) {
             node.offsetX = parentOffsetX + 8
-            node.offsetY = parentOffsetY + 8 * i++
+            node.offsetY = parentOffsetY + (0.5 * (node.leafSize - 1) + (sum) - middle) * 7
+            sum += node.leafSize
             this.calculateOffsets(node.children, node.offsetX, node.offsetY)
         }
         return arr
@@ -95,6 +112,7 @@ export default class Mindmap extends React.Component {
     }
 
     updatePositions = () => {
+        this.calculateLeafSize(this.state.tree)
         var newTree = this.calculateOffsets(this.state.tree, -8, 0)
         this.setState({
             elements: this.calculatePositions(newTree),
@@ -127,7 +145,7 @@ export default class Mindmap extends React.Component {
     _treeInsert = (arr, parentId, insertId) => {
         for(let node of arr) {
             if(node.id === parentId) {
-                node.children.push({id: insertId, parentId:node.id , children: [], offsetX: 0, offsetY: 0})
+                node.children.push({id: insertId, parentId:node.id , children: [], leafSize: 1, offsetX: 0, offsetY: 0})
                 return arr
             }
             this._treeInsert(node.children, parentId, insertId)
@@ -328,14 +346,15 @@ export default class Mindmap extends React.Component {
                         }}
                     >
                         {
-                            this.state.elements.map((element) => {
+                            this.state.elements.map((element, index) => {
                                 return (
                                     <Node 
+                                        key={index}
                                         id={element.id}
                                         x={element.x} 
                                         y={element.y} 
-                                        width={5}
-                                        height={5}
+                                        width={this.state.nodeWeight}
+                                        height={this.state.nodeHeight}
                                         text={element.text}
                                         zoomRatio={this.state.zoomRatio}
                                         frameWidth={this.state.frameWidth}
@@ -353,11 +372,13 @@ export default class Mindmap extends React.Component {
                                 );
                             })
                         }
-                        <svg width='100%' height='100%'>
+                        <img draggable={false} src={logo}/>
+                        {/* <svg width='100%' height='100%'>
                             {
-                                this.generateLines().map((line) => {
+                                this.generateLines().map((line, index) => {
                                     return (
                                         <line 
+                                            key={index}
                                             x1={line[0] + '%'} y1={line[1] + '%'}
                                             x2={line[2] + '%'} y2={line[3] + '%'}
                                             stroke='black' 
@@ -366,7 +387,7 @@ export default class Mindmap extends React.Component {
                                     )
                                 })
                             }
-                        </svg>
+                        </svg> */}
                     </div>
                 </div>
             );
