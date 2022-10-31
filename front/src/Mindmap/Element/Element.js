@@ -3,16 +3,17 @@ import './Element.css';
 
 export default class Element extends React.Component {
     constructor(props) {
-        super(props);
+        super(props)
         this.state = {
             dragged: false,
             origX: this.props.x,
             origY: this.props.y,
             clickX: this.props.x,
-            clickY: this.props.y
+            clickY: this.props.y,
+            text: this.props.text,
         }
-        window.addEventListener('mousemove', (e)=>this.onMouseMoveHandler(e));
-        window.addEventListener('mouseup', (e)=>this.onMouseUpCaptureHandler(e));
+        window.addEventListener('mousemove', (e)=>this.onMouseMoveHandler(e))
+        window.addEventListener('mouseup', (e)=>this.onMouseUpCaptureHandler(e))
     }
 
     _absoluteToPercentX = (abX) => {
@@ -72,6 +73,16 @@ export default class Element extends React.Component {
         this.props.selectNode(this.props.id)
     }
 
+    onDoubleClickHandler = () => {
+        this.props.writeNode(this.props.id)
+    }
+
+    inputHandler = (e) => {
+        this.setState({
+            text: e.target.value
+        })
+    }
+
     render() {
         return (
         <div 
@@ -81,17 +92,43 @@ export default class Element extends React.Component {
                 top: this.props.y + '%',
                 width: this.props.width + '%',
                 height: this.props.height + '%',
-                fontSize: this.props.zoomRatio * this.props.frameWidth * 0.0001 + 'rem',
+                fontSize: this.props.zoomRatio * this.props.frameWidth * 0.0003 + 'rem',
+                display: 'block',
+                textOverflow: 'ellipsis',
                 border: this.props.zoomRatio * 1 + 'px solid ' + (this.props.selected ? 'blue' : 'black'),
                 borderRadius: this.props.zoomRatio * 10,
                 boxSizing: 'border-box'
             }}
             onMouseDownCapture={(e)=>this.onMouseDownCaptureHandler(e)}
             onClick={()=>this.onClickHandler()}
+            onDoubleClick={()=>this.onDoubleClickHandler()}
         >
-            {this.props.text}
+            {this.props.writing ?
+                <input 
+                    className='input'
+                    type='text' 
+                    autoFocus
+                    value={this.state.text}
+                    onChange={(e)=>this.inputHandler(e)}
+                    style={{
+                        width: '90%',
+                        height: '40%',
+                        fontSize: '50%',
+                    }}
+                />
+                : this.state.text
+                }
         </div>
         );
     }
+
+    // componentDidUpdate() {
+    //     if(!this.props.selected && this.state.writing) {
+    //         console.log(this.props.selected)
+    //         this.setState({
+    //             writing: false
+    //         })
+    //     }
+    // }
 
 }

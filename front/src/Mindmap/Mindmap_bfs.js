@@ -28,14 +28,12 @@ export default class Mindmap extends React.Component {
             nodeWidth: 2,
             nodeHeight: 2,
             lastId: 0,
-            selectedId: 0,
-            writingId: null,
+            selectedId: 0
         }
         this.origPos = []
 
         window.addEventListener('mousemove', (e)=>this.onMouseMoveHandler(e))
         window.addEventListener('mouseup', (e)=>this.onMouseUpCaptureHandler(e))
-        // window.addEventListener('focusout', (e)=>{console.log(e)})
 
         this.zoomSpeed = 0.003;
 
@@ -45,7 +43,6 @@ export default class Mindmap extends React.Component {
         this.changeGroupPosition = this.changeGroupPosition.bind(this)
         this.changeBoardDrag = this.changeBoardDrag.bind(this)
         this.selectNode = this.selectNode.bind(this)
-        this.writeNode = this.writeNode.bind(this)
 
     }
 
@@ -53,22 +50,18 @@ export default class Mindmap extends React.Component {
         return this.state.elements.find((element) => element.id === id)
     }
 
-    _findNode = (arr, id) => {
-        var ret = null
-        for(let node of arr) {
-            if(node.id === id) {
-                ret = node
+    findNode = (id) => {
+        var queue = [this.state.tree[0]]
+        while(queue.length > 0) {
+            var tmp = queue.pop()
+            if(tmp.id === id) {
+                return tmp
             }
-            else if(ret === null){
-                ret = this._findNode(node.children, id)
+            else {
+                queue.push(...tmp.children)
             }
         }
-        return ret
-    }
-
-    findNode = (id) => {
-        var ret = this._findNode(this.state.tree, id)
-        return ret
+        return null
     }
 
     calculateLeafSize = (arr) => {
@@ -187,8 +180,7 @@ export default class Mindmap extends React.Component {
             elements: newElements,
             tree: this.treeInsert(parentElement.id, newElement.id),
             lastId: this.state.lastId + 1,
-            selectedId: this.state.lastId + 1,
-            writingId: null
+            selectedId: this.state.lastId + 1
         })
         this.updatePositions()
     }
@@ -261,13 +253,7 @@ export default class Mindmap extends React.Component {
 
     selectNode = (id) => {
         this.setState({
-            selectedId: id,
-        })
-    }
-
-    writeNode = (id) => {
-        this.setState({
-            writingId: id
+            selectedId: id
         })
     }
 
@@ -340,46 +326,20 @@ export default class Mindmap extends React.Component {
     }
 
     onClickHandler = (e) => {
-        if(e.target.className.toString() !== 'input') {
+        if(e.target.className !== 'element') {
             this.setState({
-                writingId: null,
+                selectedId: null
             })
-            if(e.target.className !== 'element') {
-                this.setState({
-                    selectedId: null,
-                })
-            }
         }
     }
 
     onKeyDownCaptureHandler = (e) => {
-        if(e.key === ' ' && this.state.selectedId !== null){
-            if(this.state.writingId !== null) {
-                return
-            }
+        if(e.key === 'Enter' && this.state.selectedId !== null){
             this.addChildNode(this.findNode(this.state.selectedId).parentId)
-            this.frameRef.current.focus()
         }
         else if(e.key === 'Tab' && this.state.selectedId !== null){
             e.preventDefault()
             this.addChildNode(this.state.selectedId)
-            this.frameRef.current.focus()
-        }
-        else if(e.key === 'Backspace' && this.state.selectedId !== null) {
-            //remove
-        }
-        else if(e.key === 'Enter' && this.state.selectedId !== null) {
-            if(this.state.writingId === null) {
-                this.setState({
-                    writingId: this.state.selectedId
-                })
-            }
-            else {
-                this.setState({
-                    writingId: null
-                })
-            }
-            this.frameRef.current.focus()
         }
     }
 
@@ -422,14 +382,12 @@ export default class Mindmap extends React.Component {
                                         boardX={this.state.x}
                                         boardY={this.state.y}
                                         selected={this.state.selectedId === element.id}
-                                        writing={this.state.writingId === element.id}
                                         changeNodePosition={this.changeNodePosition}
                                         saveOriginalPositions={this.saveOriginalPositions}
                                         freeOriginalPositions={this.freeOriginalPositions}
                                         changeGroupPosition={this.changeGroupPosition}
                                         changeBoardDrag={this.changeBoardDrag}
                                         selectNode={this.selectNode}
-                                        writeNode={this.writeNode}
                                     />
                                 );
                             })
