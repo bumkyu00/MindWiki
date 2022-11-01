@@ -1,11 +1,12 @@
-import Mindmap from './Mindmap/Mindmap';
+import Main from './Main/Main';
+// import Mindmap from './Mindmap/Mindmap';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header"/>
       <div>
-        <Mindmap/>
+        <Main/>
       </div>
     </div>
   );

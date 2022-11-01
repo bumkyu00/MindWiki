@@ -26,18 +26,18 @@ export default class Element extends React.Component {
 
     onMouseDownCaptureHandler = (e) => {
         this.props.changeBoardDrag(false)
-        this.setState({
-            dragged: true,
-            origX: this.props.x,
-            origY: this.props.y,
-            clickX: this._absoluteToPercentX(e.clientX),
-            clickY: this._absoluteToPercentY(e.clientY),
-        });
-        this.props.saveOriginalPositions(this.props.id)
+            this.setState({
+                dragged: true,
+                origX: this.props.x,
+                origY: this.props.y,
+                clickX: this._absoluteToPercentX(e.clientX),
+                clickY: this._absoluteToPercentY(e.clientY),
+            });
+            this.props.saveOriginalPositions(this.props.id)
     }
 
     onMouseMoveHandler = (e) => {
-        if(this.state.dragged){
+        if(this.state.dragged && !this.props.writing){
             this.props.changeBoardDrag(false)
             // var newX = this.state.origX + (this._absoluteToPercentX(e.clientX) - this.state.clickX);
             // var newY = this.state.origY + (this._absoluteToPercentY(e.clientY) - this.state.clickY);
@@ -111,6 +111,8 @@ export default class Element extends React.Component {
                     value={this.state.text}
                     onChange={(e)=>this.inputHandler(e)}
                     style={{
+                        position: 'relative',
+                        top: '5%',
                         width: '90%',
                         height: '40%',
                         fontSize: '50%',

@@ -353,34 +353,68 @@ export default class Mindmap extends React.Component {
     }
 
     onKeyDownCaptureHandler = (e) => {
-        if(e.key === ' ' && this.state.selectedId !== null){
-            if(this.state.writingId !== null) {
-                return
+        if(this.state.selectedId !== null) {
+            var node = this.findNode(this.state.selectedId)
+            if(e.key === ' '){
+                if(this.state.writingId !== null) {
+                    return
+                }
+                this.addChildNode(node.parentId)
+                this.frameRef.current.focus()
             }
-            this.addChildNode(this.findNode(this.state.selectedId).parentId)
-            this.frameRef.current.focus()
-        }
-        else if(e.key === 'Tab' && this.state.selectedId !== null){
-            e.preventDefault()
-            this.addChildNode(this.state.selectedId)
-            this.frameRef.current.focus()
-        }
-        else if(e.key === 'Backspace' && this.state.selectedId !== null) {
-            //remove
-        }
-        else if(e.key === 'Enter' && this.state.selectedId !== null) {
-            if(this.state.writingId === null) {
+            else if(e.key === 'Tab'){
+                e.preventDefault()
+                this.addChildNode(this.state.selectedId)
+                this.frameRef.current.focus()
+            }
+            else if(e.key === 'Backspace') {
+                //remove
+            }
+            else if(e.key === 'Enter') {
+                if(this.state.writingId === null) {
+                    this.setState({
+                        writingId: this.state.selectedId
+                    })
+                }
+                else {
+                    this.setState({
+                        writingId: null
+                    })
+                }
+                this.frameRef.current.focus()
+            }
+            else if(e.key === 'ArrowLeft') {
                 this.setState({
-                    writingId: this.state.selectedId
+                    selectedId: node.parentId
                 })
             }
-            else {
+            else if(e.key === 'ArrowRight' && node.children.length > 0) {
                 this.setState({
-                    writingId: null
+                    selectedId: node.children[0].id
                 })
             }
-            this.frameRef.current.focus()
+            else if(e.key === 'ArrowUp') {
+                var parent = this.findNode(node.parentId)
+                var currIdx = parent.children.findIndex((child) => (child === node))
+                if(currIdx === 0 || node.parentId === node.id) {
+                    return
+                }
+                this.setState({
+                    selectedId: parent.children[currIdx - 1].id
+                })
+            }
+            else if(e.key === 'ArrowDown') {
+                parent = this.findNode(node.parentId)
+                currIdx = parent.children.findIndex((child) => (child === node))
+                if(currIdx === parent.children.length - 1) {
+                    return
+                }
+                this.setState({
+                    selectedId: parent.children[currIdx + 1].id
+                })
+            }
         }
+        
     }
 
     render() {
@@ -389,7 +423,7 @@ export default class Mindmap extends React.Component {
                 <div
                      className='frame'
                      ref={this.frameRef}
-                     style={{userSelect: 'none'}}
+                     style={{userSelect: 'none', position: 'absolute'}}
                      onWheel={(e)=>this.onWheelHandler(e)}
                      onMouseDownCapture={(e)=>this.onMouseDownCaptureHandler(e)}
                      onClick={(e)=>this.onClickHandler(e)}
