@@ -10,7 +10,6 @@ export default class Element extends React.Component {
             origY: this.props.y,
             clickX: this.props.x,
             clickY: this.props.y,
-            text: this.props.text,
         }
         window.addEventListener('mousemove', (e)=>this.onMouseMoveHandler(e))
         window.addEventListener('mouseup', (e)=>this.onMouseUpCaptureHandler(e))
@@ -78,9 +77,7 @@ export default class Element extends React.Component {
     }
 
     inputHandler = (e) => {
-        this.setState({
-            text: e.target.value
-        })
+        this.props.setText(this.props.id, e.target.value)
     }
 
     render() {
@@ -108,7 +105,7 @@ export default class Element extends React.Component {
                     className='input'
                     type='text' 
                     autoFocus
-                    value={this.state.text}
+                    value={this.props.text}
                     onChange={(e)=>this.inputHandler(e)}
                     style={{
                         position: 'relative',
@@ -118,7 +115,7 @@ export default class Element extends React.Component {
                         fontSize: '50%',
                     }}
                 />
-                : this.state.text
+                : this.props.text
                 }
         </div>
         );

@@ -2,7 +2,7 @@ import React from 'react';
 import Element from './Element/Element';
 import Node from './Node/Node';
 import './Mindmap.css';
-import logo from '../logo.svg';
+import logo from '../../logo.svg';
 
 export default class Mindmap extends React.Component {
     constructor(props) {
@@ -46,11 +46,11 @@ export default class Mindmap extends React.Component {
         this.changeBoardDrag = this.changeBoardDrag.bind(this)
         this.selectNode = this.selectNode.bind(this)
         this.writeNode = this.writeNode.bind(this)
-
+        this.setNodeText = this.setNodeText.bind(this)
     }
 
     findElement = (id) => {
-        return this.state.elements.find((element) => element.id === id)
+        return this.props.data.elements.find((element) => element.id === id)
     }
 
     _findNode = (arr, id) => {
@@ -67,7 +67,7 @@ export default class Mindmap extends React.Component {
     }
 
     findNode = (id) => {
-        var ret = this._findNode(this.state.tree, id)
+        var ret = this._findNode(this.props.data.tree, id)
         return ret
     }
 
@@ -88,8 +88,8 @@ export default class Mindmap extends React.Component {
         middle = 0.5 * (middle - 1)
         var sum = 0
         for(let node of arr) {
-            node.offsetX = parentOffsetX + this.state.nodeWidth * 1.5
-            node.offsetY = parentOffsetY + (0.5 * (node.leafSize - 1) + (sum) - middle) * this.state.nodeHeight * 1.5
+            node.offsetX = parentOffsetX + this.props.data.nodeWidth * 1.5
+            node.offsetY = parentOffsetY + (0.5 * (node.leafSize - 1) + (sum) - middle) * this.props.data.nodeHeight * 1.5
             sum += node.leafSize
             this.calculateOffsets(node.children, node.offsetX, node.offsetY)
         }
@@ -106,7 +106,7 @@ export default class Mindmap extends React.Component {
     }
 
     calculatePositions = (newTree) => {
-        var newElements = this.state.elements
+        var newElements = this.props.data.elements
         for(let node of newTree) {
             var element = this.findElement(node.id)
             this._calculatePositions(node.children, newElements, element.x, element.y)
@@ -115,12 +115,12 @@ export default class Mindmap extends React.Component {
     }
 
     updatePositions = () => {
-        this.calculateLeafSize(this.state.tree)
-        var newTree = this.state.tree.map((root) => {
+        this.calculateLeafSize(this.props.data.tree)
+        var newTree = this.props.data.tree.map((root) => {
             root.children = this.calculateOffsets(root.children, 0, 0)
             return root
         })
-        this.setState({
+        this.props.setData({
             elements: this.calculatePositions(newTree),
             tree: newTree,
         })
@@ -142,7 +142,7 @@ export default class Mindmap extends React.Component {
 
     generateLines = () => {
         var lines = []
-        for(let node of this.state.tree) {
+        for(let node of this.props.data.tree) {
             this._generateLines(lines, node)
         }
         return lines
@@ -167,34 +167,34 @@ export default class Mindmap extends React.Component {
     }
 
     treeInsert = (parentId, insertId) => {
-        var newTree = this.state.tree
+        var newTree = this.props.data.tree
         return this._treeInsert(newTree, parentId, insertId)
     }
 
     addChildNode = (parentId) => {
-        var parentElement = this.state.elements.find((element) => element.id === parentId)
+        var parentElement = this.props.data.elements.find((element) => element.id === parentId)
         var newElement = {
-            id: this.state.lastId + 1, 
+            id: this.props.data.lastId + 1, 
             x: parentElement.x, 
             y: parentElement.y, 
-            width: this.state.nodeWidth, 
-            height: this.state.nodeHeight,
-            text: (this.state.lastId + 1) + ''
+            width: this.props.data.nodeWidth, 
+            height: this.props.data.nodeHeight,
+            text: (this.props.data.lastId + 1) + ''
         }
-        var newElements = this.state.elements
+        var newElements = this.props.data.elements
         newElements.push(newElement)
-        this.setState({
+        this.props.setData({
             elements: newElements,
             tree: this.treeInsert(parentElement.id, newElement.id),
-            lastId: this.state.lastId + 1,
-            selectedId: this.state.lastId + 1,
+            lastId: this.props.data.lastId + 1,
+            selectedId: this.props.data.lastId + 1,
             writingId: null
         })
         this.updatePositions()
     }
 
     changeNodePosition = (id, x, y) => {
-        var newElements = this.state.elements.map((element) => {
+        var newElements = this.props.data.elements.map((element) => {
             if(element.id === id) {
                 return {
                     ...element,
@@ -206,7 +206,7 @@ export default class Mindmap extends React.Component {
                 return element
             }
         })
-        this.setState({
+        this.props.setData({
             elements: newElements
         })
     }
@@ -235,7 +235,7 @@ export default class Mindmap extends React.Component {
     }
 
     changeGroupPosition = (xDiff, yDiff) => {
-        var newElements = this.state.elements.map((element) => {
+        var newElements = this.props.data.elements.map((element) => {
             for(let pos of this.origPos) {
                 if(pos[0] === element.id) {
                     return {
@@ -247,49 +247,61 @@ export default class Mindmap extends React.Component {
             }
             return element
         })
-        this.setState({
+        this.props.setData({
             elements: newElements
         })
 
     }
 
     changeBoardDrag = (drag) => {
-        this.setState({
+        this.props.setData({
             dragged: drag
         })
     }
 
     selectNode = (id) => {
-        this.setState({
+        this.props.setData({
             selectedId: id,
         })
     }
 
     writeNode = (id) => {
-        this.setState({
+        this.props.setData({
             writingId: id
         })
     }
 
+    setNodeText = (id, text) => {
+        var newElements = this.props.data.elements
+        newElements.map((element) => {
+            if(element.id === id) {
+                element.text = text
+            }
+        })
+        this.props.setData({
+            elements: newElements
+        })
+    }
+
     onWheelHandler = (e) => {
-        var newZoomRatio = this.state.zoomRatio - e.deltaY * this.zoomSpeed;
+        var newZoomRatio = this.props.data.zoomRatio - e.deltaY * this.zoomSpeed;
         newZoomRatio = newZoomRatio >= 1 ? newZoomRatio : 1;
-        var newX = this.state.x + ((this.state.x - e.clientX) / this.state.zoomRatio) * (newZoomRatio - this.state.zoomRatio);
-        var newY = this.state.y + ((this.state.y - e.clientY) / this.state.zoomRatio) * (newZoomRatio - this.state.zoomRatio);
+        var newX = this.props.data.x + ((this.props.data.x - e.clientX) / this.props.data.zoomRatio) * (newZoomRatio - this.props.data.zoomRatio);
+        var newY = this.props.data.y + ((this.props.data.y - e.clientY) / this.props.data.zoomRatio) * (newZoomRatio - this.props.data.zoomRatio);
         if(newX >= 0) {
             newX = 0;
         }
-        if(newX <= this.state.frameWidth * (1 - newZoomRatio)) {
-            newX = this.state.frameWidth * (1 - newZoomRatio);
+        if(newX <= this.props.data.frameWidth * (1 - newZoomRatio)) {
+            newX = this.props.data.frameWidth * (1 - newZoomRatio);
         }
         if(newY >= 0) {
             newY = 0;
         }
-        if(newY <= this.state.frameHeight * (1 - newZoomRatio)) {
-            newY = this.state.frameHeight * (1 - newZoomRatio);
+        if(newY <= this.props.data.frameHeight * (1 - newZoomRatio)) {
+            newY = this.props.data.frameHeight * (1 - newZoomRatio);
         }
 
-        this.setState({
+        this.props.setData({
             zoomRatio: newZoomRatio,
             x: newX,
             y: newY,
@@ -297,34 +309,34 @@ export default class Mindmap extends React.Component {
     }
 
     onMouseDownCaptureHandler = (e) => {
-        this.setState({
+        this.props.setData({
             dragged: true,
-            origX: this.state.x,
-            origY: this.state.y,
+            origX: this.props.data.x,
+            origY: this.props.data.y,
             clickX: e.clientX,
             clickY: e.clientY,
         })
     }
 
     onMouseMoveHandler = (e) => {
-        if(this.state.dragged){
-            var newX = this.state.origX + (e.clientX - this.state.clickX);
-            var newY = this.state.origY + (e.clientY - this.state.clickY);
-            var zoomRatio = this.state.zoomRatio;
+        if(this.props.data.dragged){
+            var newX = this.props.data.origX + (e.clientX - this.props.data.clickX);
+            var newY = this.props.data.origY + (e.clientY - this.props.data.clickY);
+            var zoomRatio = this.props.data.zoomRatio;
             if(newX >= 0) {
                 newX = 0;
             }
-            if(newX <= this.state.frameWidth * (1 - zoomRatio)) {
-                newX = this.state.frameWidth * (1 - zoomRatio);
+            if(newX <= this.props.data.frameWidth * (1 - zoomRatio)) {
+                newX = this.props.data.frameWidth * (1 - zoomRatio);
             }
             if(newY >= 0) {
                 newY = 0;
             }
-            if(newY <= this.state.frameHeight * (1 - zoomRatio)) {
-                newY = this.state.frameHeight * (1 - zoomRatio);
+            if(newY <= this.props.data.frameHeight * (1 - zoomRatio)) {
+                newY = this.props.data.frameHeight * (1 - zoomRatio);
             }
 
-            this.setState({
+            this.props.setData({
                 x: newX, 
                 y: newY,
             });
@@ -332,20 +344,20 @@ export default class Mindmap extends React.Component {
     }
 
     onMouseUpCaptureHandler = () => {
-        this.setState({
+        this.props.setData({
             dragged: false,
-            origX: this.state.x,
-            origY: this.state.y,
+            origX: this.props.data.x,
+            origY: this.props.data.y,
         })
     }
 
     onClickHandler = (e) => {
         if(e.target.className.toString() !== 'input') {
-            this.setState({
+            this.props.setData({
                 writingId: null,
             })
             if(e.target.className !== 'element') {
-                this.setState({
+                this.props.setData({
                     selectedId: null,
                 })
             }
@@ -353,10 +365,10 @@ export default class Mindmap extends React.Component {
     }
 
     onKeyDownCaptureHandler = (e) => {
-        if(this.state.selectedId !== null) {
-            var node = this.findNode(this.state.selectedId)
+        if(this.props.data.selectedId !== null) {
+            var node = this.findNode(this.props.data.selectedId)
             if(e.key === ' '){
-                if(this.state.writingId !== null) {
+                if(this.props.data.writingId !== null) {
                     return
                 }
                 this.addChildNode(node.parentId)
@@ -364,52 +376,64 @@ export default class Mindmap extends React.Component {
             }
             else if(e.key === 'Tab'){
                 e.preventDefault()
-                this.addChildNode(this.state.selectedId)
+                this.addChildNode(this.props.data.selectedId)
                 this.frameRef.current.focus()
             }
             else if(e.key === 'Backspace') {
                 //remove
             }
             else if(e.key === 'Enter') {
-                if(this.state.writingId === null) {
-                    this.setState({
-                        writingId: this.state.selectedId
+                if(this.props.data.writingId === null) {
+                    this.props.setData({
+                        writingId: this.props.data.selectedId
                     })
                 }
                 else {
-                    this.setState({
+                    this.props.setData({
                         writingId: null
                     })
                 }
                 this.frameRef.current.focus()
             }
             else if(e.key === 'ArrowLeft') {
-                this.setState({
-                    selectedId: node.parentId
+                if(this.props.data.writingId !== null) {
+                    return
+                }
+                this.props.setData({
+                    selectedId: node.parentId,
                 })
             }
             else if(e.key === 'ArrowRight' && node.children.length > 0) {
-                this.setState({
+                if(this.props.data.writingId !== null) {
+                    return
+                }
+                this.props.setData({
                     selectedId: node.children[0].id
                 })
             }
             else if(e.key === 'ArrowUp') {
+                if(this.props.data.writingId !== null) {
+                    return
+                }
                 var parent = this.findNode(node.parentId)
                 var currIdx = parent.children.findIndex((child) => (child === node))
                 if(currIdx === 0 || node.parentId === node.id) {
                     return
                 }
-                this.setState({
-                    selectedId: parent.children[currIdx - 1].id
+                this.props.setData({
+                    selectedId: parent.children[currIdx - 1].id,
                 })
             }
             else if(e.key === 'ArrowDown') {
+                if(this.props.data.writingId !== null) {
+                    return
+                }
                 parent = this.findNode(node.parentId)
                 currIdx = parent.children.findIndex((child) => (child === node))
                 if(currIdx === parent.children.length - 1) {
                     return
                 }
-                this.setState({
+                this.props.setData({
                     selectedId: parent.children[currIdx + 1].id
                 })
             }
@@ -418,7 +442,7 @@ export default class Mindmap extends React.Component {
     }
 
     render() {
-        if(this.state.frameWidth && this.state.frameHeight){
+        if(this.props.data.frameWidth && this.props.data.frameHeight){
             return (
                 <div
                      className='frame'
@@ -433,14 +457,14 @@ export default class Mindmap extends React.Component {
                     <div
                         className='board'
                         style={{
-                            left: this.state.x,
-                            top: this.state.y,
-                            width: 100 * this.state.zoomRatio + '%',
-                            height: 100 * this.state.zoomRatio + '%',
+                            left: this.props.data.x,
+                            top: this.props.data.y,
+                            width: 100 * this.props.data.zoomRatio + '%',
+                            height: 100 * this.props.data.zoomRatio + '%',
                         }}
                     >
                         {
-                            this.state.elements.map((element, index) => {
+                            this.props.data.elements.map((element, index) => {
                                 return (
                                     <Node 
                                         key={index}
@@ -450,13 +474,13 @@ export default class Mindmap extends React.Component {
                                         width={element.width}
                                         height={element.height}
                                         text={element.text}
-                                        zoomRatio={this.state.zoomRatio}
-                                        frameWidth={this.state.frameWidth}
-                                        frameHeight={this.state.frameHeight}
-                                        boardX={this.state.x}
-                                        boardY={this.state.y}
-                                        selected={this.state.selectedId === element.id}
-                                        writing={this.state.writingId === element.id}
+                                        zoomRatio={this.props.data.zoomRatio}
+                                        frameWidth={this.props.data.frameWidth}
+                                        frameHeight={this.props.data.frameHeight}
+                                        boardX={this.props.data.x}
+                                        boardY={this.props.data.y}
+                                        selected={this.props.data.selectedId === element.id}
+                                        writing={this.props.data.writingId === element.id}
                                         changeNodePosition={this.changeNodePosition}
                                         saveOriginalPositions={this.saveOriginalPositions}
                                         freeOriginalPositions={this.freeOriginalPositions}
@@ -464,6 +488,7 @@ export default class Mindmap extends React.Component {
                                         changeBoardDrag={this.changeBoardDrag}
                                         selectNode={this.selectNode}
                                         writeNode={this.writeNode}
+                                        setText={this.setNodeText}
                                     />
                                 );
                             })
@@ -478,7 +503,7 @@ export default class Mindmap extends React.Component {
                                             x1={line[0] + '%'} y1={line[1] + '%'}
                                             x2={line[2] + '%'} y2={line[3] + '%'}
                                             stroke='black' 
-                                            strokeWidth={this.state.zoomRatio * 5}
+                                            strokeWidth={this.props.data.zoomRatio * 5}
                                         />
                                     )
                                 })
@@ -499,10 +524,10 @@ export default class Mindmap extends React.Component {
                 <div
                     className='board'
                     style={{
-                        left: this.state.x,
-                        top: this.state.y,
-                        width: 100 * this.state.zoomRatio + '%',
-                        height: 100 * this.state.zoomRatio + '%',
+                        left: this.props.data.x,
+                        top: this.props.data.y,
+                        width: 100 * this.props.data.zoomRatio + '%',
+                        height: 100 * this.props.data.zoomRatio + '%',
                     }}
                 >
                     <img draggable={false} src={logo} alt=''/>
@@ -512,8 +537,8 @@ export default class Mindmap extends React.Component {
     }
 
     componentDidMount() {
-        if(!this.state.frameWidth || !this.state.frameHeight) {
-            this.setState({
+        if(!this.props.data.frameWidth || !this.props.data.frameHeight) {
+            this.props.setData({
                 frameWidth: this.frameRef.current.clientWidth,
                 frameHeight: this.frameRef.current.clientHeight
             })

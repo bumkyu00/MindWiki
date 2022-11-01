@@ -1,6 +1,6 @@
 import React from 'react';
-import Mindmap from '../Mindmap/Mindmap';
-import Document from '../Document/Document';
+import Mindmap from './Mindmap/Mindmap';
+import Document from './Document/Document';
 import './Main.css';
 
 export default class Main extends React.Component {
@@ -30,19 +30,70 @@ export default class Main extends React.Component {
             writingId: null,
         }
 
-        this.state = {
-            isMindmap: true,
-            mindmapData: this.defaultMindmapData,
-            documentData: null,
+        this.defaultDocumentData = {
+            documentText: "1"
         }
 
-        this.setMindmapData = this.setMindmapData.bind(this)
-        // this.setDocumentData = this.setDocumentData.bind(this)
+        this.state = {
+            isMindmap: true,
+            ...this.defaultMindmapData,
+            ...this.defaultDocumentData
+        }
+
+        this.setData = this.setData.bind(this)
     }
 
-    setMindmapData = (data) => {
+    findElement = (id) => {
+        return this.state.elements.find((element) => element.id === id)
+    }
+
+    // _findNode = (arr, id) => {
+    //     var ret = null
+    //     for(let node of arr) {
+    //         if(node.id === id) {
+    //             ret = node
+    //         }
+    //         else if(ret === null){
+    //             ret = this._findNode(node.children, id)
+    //         }
+    //     }
+    //     return ret
+    // }
+
+    // findNode = (id) => {
+    //     var ret = this._findNode(this.props.data.tree, id)
+    //     return ret
+    // }
+
+    setData = (data) => {
         this.setState({
-            mindmapData: {...this.state.mindmapData, ...data}
+            ...data
+        })
+        this.mindmapToDocument()
+    }
+
+    _mindmapToDocument = (node, text, level) => {
+        var element = this.findElement(node.id)
+        // text += element.text
+        // text += '/\n'
+        // for(let child of node.children) {
+        //     text = this._mindmapToDocument(child, text)
+        // }
+        text.push(<div style={{marginLeft: level * 20}}>{element.text}</div>)
+        for(let child of node.children) {
+            text = this._mindmapToDocument(child, text, level + 1)
+        }
+        return text
+    }
+
+    mindmapToDocument = () => {
+        var text = []
+        for(let node of this.state.tree) {
+            // text += this._mindmapToDocument(node, '')
+            text.push(this._mindmapToDocument(node, [], 0))
+        }
+        this.setState({
+            documentText: text
         })
     }
 
@@ -52,10 +103,13 @@ export default class Main extends React.Component {
                 {
                     this.state.isMindmap ? 
                     (<Mindmap
-                        data={this.state.mindmapData}
-                        setData={this.setMindmapData}
+                        data={this.state}
+                        setData={this.setData}
                     />) :
-                    <Document/>
+                    (<Document
+                        data={this.state}
+                        setData={this.setData}
+                    />)
                 }
                 <button
                     style={{
