@@ -1,5 +1,4 @@
 import React from 'react';
-import './Element.css';
 
 export default class Element extends React.Component {
     constructor(props) {
@@ -85,6 +84,7 @@ export default class Element extends React.Component {
         <div 
             className='element' 
             style={{
+                position: 'absolute',
                 left: this.props.x + '%', 
                 top: this.props.y + '%',
                 width: this.props.width + '%',
@@ -93,8 +93,11 @@ export default class Element extends React.Component {
                 display: 'block',
                 textOverflow: 'ellipsis',
                 border: this.props.zoomRatio * 1 + 'px solid ' + (this.props.selected ? 'blue' : 'black'),
-                borderRadius: this.props.zoomRatio * 10,
-                boxSizing: 'border-box'
+                borderRadius: this.props.zoomRatio * 8,
+                boxSizing: 'border-box',
+                backgroundColor: 'white',
+                textAlign: 'center',
+                whiteSpace: 'normal'
             }}
             onMouseDownCapture={(e)=>this.onMouseDownCaptureHandler(e)}
             onClick={()=>this.onClickHandler()}
@@ -109,7 +112,7 @@ export default class Element extends React.Component {
                     onChange={(e)=>this.inputHandler(e)}
                     style={{
                         position: 'relative',
-                        top: '5%',
+                        top: '10%',
                         width: '90%',
                         height: '40%',
                         fontSize: '50%',
@@ -120,14 +123,4 @@ export default class Element extends React.Component {
         </div>
         );
     }
-
-    // componentDidUpdate() {
-    //     if(!this.props.selected && this.state.writing) {
-    //         console.log(this.props.selected)
-    //         this.setState({
-    //             writing: false
-    //         })
-    //     }
-    // }
-
 }

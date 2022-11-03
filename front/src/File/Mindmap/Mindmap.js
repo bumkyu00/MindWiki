@@ -503,7 +503,7 @@ export default class Mindmap extends React.Component {
                                             x1={line[0] + '%'} y1={line[1] + '%'}
                                             x2={line[2] + '%'} y2={line[3] + '%'}
                                             stroke='black' 
-                                            strokeWidth={this.props.data.zoomRatio * 5}
+                                            strokeWidth={this.props.data.zoomRatio * 2}
                                         />
                                     )
                                 })

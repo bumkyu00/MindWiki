@@ -6,7 +6,7 @@ export default class Document extends React.Component {
         return (
             <div 
                 className='text'
-                style={{position: 'absolute'}}
+                style={{position: 'absolute', top: '110px'}}
             >
                 {this.props.data.documentText}
             </div>

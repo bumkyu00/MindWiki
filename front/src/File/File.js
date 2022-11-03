@@ -1,9 +1,11 @@
 import React from 'react';
 import Mindmap from './Mindmap/Mindmap';
 import Document from './Document/Document';
-import './Main.css';
+import './File.css';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
 
-export default class Main extends React.Component {
+export default class File extends React.Component {
     constructor(props) {
         super(props)
         this.defaultMindmapData = {
@@ -41,6 +43,25 @@ export default class Main extends React.Component {
         }
 
         this.setData = this.setData.bind(this)
+
+        this.loading = true
+        this.getData()
+    }
+
+    getData = () => {
+        axios(
+            {
+                url: '/api/file',
+                method: 'get',
+                params: {
+                    id: 1
+                }
+            }
+        ).then((response) => {
+            console.log(response.data)
+        }).catch((e) => {
+            console.log(e)
+        }).then(()=>this.loading = false)
     }
 
     findElement = (id) => {
@@ -99,6 +120,7 @@ export default class Main extends React.Component {
 
     render() {
         return (
+            this.loading ? <div></div> : 
             <div>
                 {
                     this.state.isMindmap ? 
@@ -111,13 +133,22 @@ export default class Main extends React.Component {
                         setData={this.setData}
                     />)
                 }
+                <Link
+                    style={{
+                        position: 'fixed',
+                        fontSize: '100px',
+                    }}
+                    tabIndex='-1'
+                    to='/'
+                >Main</Link>
                 <button
                     style={{
-                        position: 'sticky',
-                        float: 'right',
+                        position: 'fixed',
+                        right: 0,
                         fontSize: '100px',
                     }}
                     onClick={()=>this.setState({isMindmap: !this.state.isMindmap})}
+                    tabIndex='-1'
                 >Change</button>
             </div>
         )
