@@ -2,10 +2,10 @@ import React from 'react';
 import Mindmap from './Mindmap/Mindmap';
 import Document from './Document/Document';
 import './File.css';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import axios from 'axios';
 
-export default class File extends React.Component {
+class File extends React.Component {
     constructor(props) {
         super(props)
         this.defaultMindmapData = {
@@ -43,25 +43,38 @@ export default class File extends React.Component {
         }
 
         this.setData = this.setData.bind(this)
+        this.saveDataToServer = this.saveDataToServer.bind(this)
 
         this.loading = true
-        this.getData()
+        this.getDataFromServer()
     }
 
-    getData = () => {
+    getDataFromServer = () => {
         axios(
             {
-                url: '/api/file',
+                url: '/api/file/' + this.props.match.params.fileId,
                 method: 'get',
-                params: {
-                    id: 1
-                }
+            }
+        ).then((response) => {
+            console.log(response.data)
+            this.setState(response.data)
+        }).catch((e) => {
+            console.log(e)
+        }).then(()=>this.loading = false)
+    }
+
+    saveDataToServer = (data) => {
+        axios(
+            {
+                url: '/api/file/' + this.props.match.params.fileId,
+                method: 'patch',
+                data: data
             }
         ).then((response) => {
             console.log(response.data)
         }).catch((e) => {
             console.log(e)
-        }).then(()=>this.loading = false)
+        })
     }
 
     findElement = (id) => {
@@ -91,6 +104,7 @@ export default class File extends React.Component {
             ...data
         })
         this.mindmapToDocument()
+        // this.setDataToServer(data)
     }
 
     _mindmapToDocument = (node, text, level) => {
@@ -127,10 +141,12 @@ export default class File extends React.Component {
                     (<Mindmap
                         data={this.state}
                         setData={this.setData}
+                        saveDataToServer={this.saveDataToServer}
                     />) :
                     (<Document
                         data={this.state}
                         setData={this.setData}
+                        saveDataToServer={this.saveDataToServer}
                     />)
                 }
                 <Link
@@ -154,3 +170,5 @@ export default class File extends React.Component {
         )
     }
 }
+
+export default withRouter(File)

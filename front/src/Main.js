@@ -30,7 +30,7 @@ export default class Main extends React.Component {
                 {
                     this.state.files.map((file, index) => {
                         return (
-                            <Link key={index} to={'/file/' + file.id}>{file.name}</Link>
+                            <Link key={index} to={'/file/' + file.id}>{file.name === '' ? 'file ' + file.id : file.name}</Link>
                         )
                     })
                 }

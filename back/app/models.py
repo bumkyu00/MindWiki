@@ -8,13 +8,13 @@ class File(models.Model):
     y = models.FloatField(default=0)
     node_width = models.FloatField(default=2)
     node_height = models.FloatField(default=2)
-    last_id = models.IntegerField(default=None, null=True)
+    last_id = models.IntegerField(default=0)
     selected_id = models.IntegerField(default=None, null=True)
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, models.CASCADE, default=None, null=True)
 
 class Node(models.Model):
-    id = models.UUIDField(primary_key=True)
+    local_id = models.IntegerField(default=0)
     x = models.FloatField(default=0)
     y = models.FloatField(default=0)
     width = models.FloatField(default=2)
@@ -24,7 +24,7 @@ class Node(models.Model):
     file = models.ForeignKey('File', models.CASCADE)
 
 class Leaf(models.Model):
-    id = models.UUIDField(primary_key=True)
+    local_id = models.IntegerField(default=0)
     parent_id = models.IntegerField(default=None, null=True)
     leaf_size = models.IntegerField(default=1)
     offset_x = models.FloatField(default=0)
