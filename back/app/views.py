@@ -26,10 +26,17 @@ def _build_tree():
         'offsetX': leaf['offset_x'], 
         'offsetY': leaf['offset_y']
     } for leaf in Leaf.objects.all().values()]
+    # print(tree, leaves)
     for leaf in leaves:
         if leaf['parentId'] == leaf['id']:
             tree.append(leaf)
             leaves.remove(leaf)
+    # print(tree, leaves)
+    for leaf in leaves:
+        if leaf['parentId'] == leaf['id']:
+            tree.append(leaf)
+            leaves.remove(leaf)
+    # print(tree, leaves)
     return _add_children(tree, leaves)
 
 def _flatten(tree):
@@ -38,6 +45,18 @@ def _flatten(tree):
         ret.append(leaf)
         ret += _flatten(leaf['children'])
     return ret
+
+@csrf_exempt
+def create_file(request):
+    if request.method == 'POST':
+        file = File()
+        file.save()
+        node = Node(file=file, local_id=0)
+        node.save()
+        leaf = Leaf(file=file, local_id=0, parent_id=0)
+        leaf.save()
+        return HttpResponse(f'posted file({file.id})')
+    return HttpResponseNotAllowed(['POST'])
 
 @csrf_exempt
 def file(request, file_id):
@@ -112,16 +131,8 @@ def file(request, file_id):
         except (KeyError, JSONDecodeError) as e:
             return HttpResponseBadRequest()
         return HttpResponse(f'updated file({file_id})')
-    elif request.method == 'POST':
-        file = File()
-        file.save()
-        node = Node(file=file, local_id=0)
-        node.save()
-        leaf = Leaf(file=file, local_id=0, parent_id=0)
-        leaf.save()
-        return HttpResponse(f'posted file({file.id})')
     elif request.method == 'DELETE':
-        File.objects.get(file=file_id).delete()
-        return HttpResponse(f'deleted file({file.id})')
+        File.objects.get(id=file_id).delete()
+        return HttpResponse(f'deleted file({file_id})')
 
-    return HttpResponseNotAllowed(['GET', 'POST', 'PATCH', 'DELETE'])
+    return HttpResponseNotAllowed(['GET', 'PATCH', 'DELETE'])

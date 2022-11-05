@@ -56,19 +56,19 @@ class File extends React.Component {
                 method: 'get',
             }
         ).then((response) => {
-            console.log(response.data)
+            // console.log(response.data)
             this.setState(response.data)
         }).catch((e) => {
             console.log(e)
         }).then(()=>this.loading = false)
     }
 
-    saveDataToServer = (data) => {
+    saveDataToServer = () => {
         axios(
             {
                 url: '/api/file/' + this.props.match.params.fileId,
                 method: 'patch',
-                data: data
+                data: this.state
             }
         ).then((response) => {
             console.log(response.data)
@@ -81,39 +81,15 @@ class File extends React.Component {
         return this.state.elements.find((element) => element.id === id)
     }
 
-    // _findNode = (arr, id) => {
-    //     var ret = null
-    //     for(let node of arr) {
-    //         if(node.id === id) {
-    //             ret = node
-    //         }
-    //         else if(ret === null){
-    //             ret = this._findNode(node.children, id)
-    //         }
-    //     }
-    //     return ret
-    // }
-
-    // findNode = (id) => {
-    //     var ret = this._findNode(this.props.data.tree, id)
-    //     return ret
-    // }
-
     setData = (data) => {
         this.setState({
             ...data
         })
         this.mindmapToDocument()
-        // this.setDataToServer(data)
     }
 
     _mindmapToDocument = (node, text, level) => {
         var element = this.findElement(node.id)
-        // text += element.text
-        // text += '/\n'
-        // for(let child of node.children) {
-        //     text = this._mindmapToDocument(child, text)
-        // }
         text.push(<div style={{marginLeft: level * 20}}>{element.text}</div>)
         for(let child of node.children) {
             text = this._mindmapToDocument(child, text, level + 1)
@@ -124,7 +100,6 @@ class File extends React.Component {
     mindmapToDocument = () => {
         var text = []
         for(let node of this.state.tree) {
-            // text += this._mindmapToDocument(node, '')
             text.push(this._mindmapToDocument(node, [], 0))
         }
         this.setState({

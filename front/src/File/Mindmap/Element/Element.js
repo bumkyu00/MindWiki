@@ -10,8 +10,6 @@ export default class Element extends React.Component {
             clickX: this.props.x,
             clickY: this.props.y,
         }
-        window.addEventListener('mousemove', (e)=>this.onMouseMoveHandler(e))
-        window.addEventListener('mouseup', (e)=>this.onMouseUpCaptureHandler(e))
     }
 
     _absoluteToPercentX = (abX) => {
@@ -122,5 +120,15 @@ export default class Element extends React.Component {
                 }
         </div>
         );
+    }
+
+    componentDidMount() {
+        window.addEventListener('mousemove', this.onMouseMoveHandler)
+        window.addEventListener('mouseup', this.onMouseUpCaptureHandler)
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('mousemove', this.onMouseMoveHandler)
+        window.removeEventListener('mouseup', this.onMouseUpCaptureHandler)
     }
 }

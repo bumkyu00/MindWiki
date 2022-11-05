@@ -32,11 +32,6 @@ export default class Mindmap extends React.Component {
             writingId: null,
         }
         this.origPos = []
-
-        window.addEventListener('mousemove', (e)=>this.onMouseMoveHandler(e))
-        window.addEventListener('mouseup', (e)=>this.onMouseUpCaptureHandler(e))
-        // window.addEventListener('focusout', (e)=>{console.log(e)})
-
         this.zoomSpeed = 0.003;
 
         this.changeNodePosition = this.changeNodePosition.bind(this)
@@ -191,10 +186,10 @@ export default class Mindmap extends React.Component {
             writingId: null
         })
         this.updatePositions()
-        this.props.saveDataToServer({
-            elements: this.props.data.elements,
-            tree: this.props.data.tree
-        })
+        // this.props.saveDataToServer({
+        //     elements: this.props.data.elements,
+        //     tree: this.props.data.tree
+        // })
     }
 
     changeNodePosition = (id, x, y) => {
@@ -285,9 +280,9 @@ export default class Mindmap extends React.Component {
         this.props.setData({
             elements: newElements
         })
-        this.props.saveDataToServer({
-            elements: newElements
-        })
+        // this.props.saveDataToServer({
+        //     elements: newElements
+        // })
     }
 
     onWheelHandler = (e) => {
@@ -313,11 +308,11 @@ export default class Mindmap extends React.Component {
             x: newX,
             y: newY,
         });
-        this.props.saveDataToServer({
-            zoomRatio: newZoomRatio,
-            x: newX,
-            y: newY,
-        })
+        // this.props.saveDataToServer({
+        //     zoomRatio: newZoomRatio,
+        //     x: newX,
+        //     y: newY,
+        // })
     }
 
     onMouseDownCaptureHandler = (e) => {
@@ -361,13 +356,12 @@ export default class Mindmap extends React.Component {
             origX: this.props.data.x,
             origY: this.props.data.y,
         })
-        console.log('hihi', this.props.data)
-        this.props.saveDataToServer({
-            x: this.props.data.x,
-            y: this.props.data.y,
-            elements: this.props.data.elements,
-            tree: this.props.data.tree
-        })
+        // this.props.saveDataToServer({
+        //     x: this.props.data.x,
+        //     y: this.props.data.y,
+        //     elements: this.props.data.elements,
+        //     tree: this.props.data.tree
+        // })
     }
 
     onClickHandler = (e) => {
@@ -556,11 +550,19 @@ export default class Mindmap extends React.Component {
     }
 
     componentDidMount() {
+        window.addEventListener('mousemove', this.onMouseMoveHandler)
+        window.addEventListener('mouseup', this.onMouseUpCaptureHandler)
+        // window.addEventListener('beforeunload', this.props.saveDataToServer)
         if(!this.props.data.frameWidth || !this.props.data.frameHeight) {
             this.props.setData({
                 frameWidth: this.frameRef.current.clientWidth,
                 frameHeight: this.frameRef.current.clientHeight
             })
         }
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('mousemove', this.onMouseMoveHandler)
+        window.removeEventListener('mouseup', this.onMouseUpCaptureHandler)
     }
 }
